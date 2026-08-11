@@ -1,16 +1,15 @@
 import crypto from 'crypto'
-import { supabase } from './supabaseClient'
+import { getSupabaseClient } from './supabaseClient'
 
-const MAGIC_TOKEN_SECRET = process.env.VAULT_TOKEN_SECRET
 const BASE_URL = process.env.VAULT_BASE_URL ?? 'https://vaultengine.example.com'
 const DEFAULT_TOKEN_TTL_SECONDS = 15 * 60
 
-if (!MAGIC_TOKEN_SECRET) {
-  throw new Error('VaultEngine requires VAULT_TOKEN_SECRET environment variable.')
-}
-
 function getMagicTokenSecret(): string {
-  return MAGIC_TOKEN_SECRET as string
+  const secret = process.env.VAULT_TOKEN_SECRET
+  if (!secret) {
+    throw new Error('VaultEngine requires VAULT_TOKEN_SECRET environment variable.')
+  }
+  return secret
 }
 
 function hashMagicToken(token: string): string {
@@ -40,6 +39,7 @@ export async function generateMagicLinkForAsset({
   const tokenHash = hashMagicToken(rawToken)
   const expiresAt = new Date(Date.now() + expiresInSeconds * 1000).toISOString()
 
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from('vault_magic_tokens')
     .insert([

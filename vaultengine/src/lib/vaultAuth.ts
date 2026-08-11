@@ -1,15 +1,13 @@
 import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from './supabaseClient'
-
-const MAGIC_TOKEN_SECRET = process.env.VAULT_TOKEN_SECRET
-
-if (!MAGIC_TOKEN_SECRET) {
-  throw new Error('VaultEngine requires VAULT_TOKEN_SECRET environment variable.')
-}
+import { getSupabaseClient } from './supabaseClient'
 
 function getMagicTokenSecret(): string {
-  return MAGIC_TOKEN_SECRET as string
+  const secret = process.env.VAULT_TOKEN_SECRET
+  if (!secret) {
+    throw new Error('VaultEngine requires VAULT_TOKEN_SECRET environment variable.')
+  }
+  return secret
 }
 
 function hashMagicToken(token: string): string {
@@ -17,6 +15,7 @@ function hashMagicToken(token: string): string {
 }
 
 async function revokeToken(tokenId: string, reason: string) {
+  const supabase = getSupabaseClient()
   await supabase
     .from('vault_magic_tokens')
     .update({ status: 'revoked', revoked_at: new Date().toISOString(), revoke_reason: reason })
@@ -24,6 +23,7 @@ async function revokeToken(tokenId: string, reason: string) {
 }
 
 async function recordAuditEvent(tokenId: string, eventType: string, payload: Record<string, unknown>) {
+  const supabase = getSupabaseClient()
   await supabase.from('vault_access_audit').insert([
     {
       token_id: tokenId,
@@ -48,6 +48,7 @@ export type ValidatedVaultAccess = {
 
 export async function validateMagicToken(token: string, assetId: string, buyerId?: string): Promise<ValidatedVaultAccess> {
   const tokenHash = hashMagicToken(token)
+  const supabase = getSupabaseClient()
 
   const { data: tokenRow, error: tokenError } = await supabase
     .from('vault_magic_tokens')
