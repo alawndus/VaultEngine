@@ -10,7 +10,7 @@ if (!MAGIC_TOKEN_SECRET) {
 }
 
 function getMagicTokenSecret(): string {
-  return MAGIC_TOKEN_SECRET
+  return MAGIC_TOKEN_SECRET as string
 }
 
 function hashMagicToken(token: string): string {
