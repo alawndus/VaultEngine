@@ -30,8 +30,8 @@ export default function EphemeralKineticVaultConsumer({
   const [locked, setLocked] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sessionSecondsRemaining, setSessionSecondsRemaining] = useState(sessionSeconds)
-  const sessionExpiryTimer = useRef<NodeJS.Timeout | null>(null)
-  const lockTimer = useRef<NodeJS.Timeout | null>(null)
+  const sessionExpiryTimer = useRef<number | null>(null)
+  const lockTimer = useRef<number | null>(null)
 
   function lockSession(message: string) {
     setLocked(true)
