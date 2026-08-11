@@ -9,8 +9,12 @@ if (!MAGIC_TOKEN_SECRET) {
   throw new Error('VaultEngine requires VAULT_TOKEN_SECRET environment variable.')
 }
 
+function getMagicTokenSecret(): string {
+  return MAGIC_TOKEN_SECRET
+}
+
 function hashMagicToken(token: string): string {
-  return crypto.createHmac('sha256', MAGIC_TOKEN_SECRET).update(token).digest('hex')
+  return crypto.createHmac('sha256', getMagicTokenSecret()).update(token).digest('hex')
 }
 
 export type MagicLinkPayload = {
