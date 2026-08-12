@@ -1,70 +1,70 @@
-# GitHub Codespaces ♥️ React
+# VaultEngine Repository
 
-Welcome to your shiny new Codespace running React! We've got everything fired up and running for you to explore React.
+This monorepo contains two applications:
 
-You've got a blank canvas to work on from a git perspective as well. There's a single initial commit with the what you're seeing right now - where you go from here is up to you!
+- A Vite + React frontend app in the repository root (development served on port 3000).
+- `vaultengine/` — a Next.js App Router backend that implements a magic-link based secure asset delivery system backed by Supabase.
 
-Everything you do here is contained within this one codespace. There is no repository on GitHub yet. If and when you’re ready you can click "Publish Branch" and we’ll create your repository and push up your project. If you were just exploring then and have no further need for this code then you can simply delete your codespace and it's gone forever.
+This README covers quick commands and where to look for the VaultEngine implementation.
 
-This project was bootstrapped for you with [Vite](https://vitejs.dev/).
+## Root (Vite + React)
 
-## Available Scripts
+Commands (run from repository root):
 
-In the project directory, you can run:
+```bash
+npm install
+npm start        # dev server on http://localhost:3000
+npm test         # run Vitest
+npm run build    # production build
+npm run preview  # preview production build
+```
 
-### `npm start`
+The root app is a simple starter and test harness. See `src/` for the React source and tests.
 
-We've already run this for you in the `Codespaces: server` terminal window below. If you need to stop the server for any reason you can just run `npm start` again to bring it back online.
+## VaultEngine (Next.js + Supabase)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000/](http://localhost:3000/) in the built-in Simple Browser (`Cmd/Ctrl + Shift + P > Simple Browser: Show`) to view your running application.
+Location: `vaultengine/`
 
-The page will reload automatically when you make changes.\
-You may also see any lint errors in the console.
+Quick start:
 
-### `npm test`
+```bash
+cd vaultengine
+cp .env.example .env.local   # populate SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, VAULT_TOKEN_SECRET
+npm install
+npm run dev                  # start Next.js on port 3000 (or override)
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Optional helpers in `vaultengine`:
+- `npm run gen-secret` — generate a secure `VAULT_TOKEN_SECRET` for local testing
+- `npm run seed` — seed demo user, asset, and a magic link (uses Service Role key; run only on dev/test)
 
-### `npm run build`
+See [vaultengine/README.md](vaultengine/README.md#L1) for detailed VaultEngine setup notes and security guidance.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Environment
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Critical environment variables for VaultEngine (set in `vaultengine/.env.local`):
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY` (server-only secret)
+- `VAULT_TOKEN_SECRET` (HMAC secret used to hash tokens)
+- `NEXT_PUBLIC_APP_URL` or `VAULT_BASE_URL` (used to construct magic links)
 
-## Learn More
+Do NOT commit `.env.local` or any secrets to source control.
 
-You can learn more in the [Vite documentation](https://vitejs.dev/guide/).
+## Security notes
 
-To learn Vitest, a Vite-native testing framework, go to [Vitest documentation](https://vitest.dev/guide/)
+- Tokens are HMAC-hashed before storage; the server verifies hashes when consuming tokens.
+- Tokens are intended single-use and time-limited. Reviewers should check atomic consumption and audit logging.
+- Asset delivery currently returns `content_url` — consider using signed URLs or a secure proxy in production.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## License
 
-### Code Splitting
+This repository is licensed under the MIT License. See `LICENSE` for details.
 
-This section has moved here: [https://sambitsahoo.com/blog/vite-code-splitting-that-works.html](https://sambitsahoo.com/blog/vite-code-splitting-that-works.html)
+## Where to look
 
-### Analyzing the Bundle Size
+- Vault logic: `vaultengine/src/lib/vaultAuth.ts`, `vaultengine/src/lib/vaultMagicLink.ts`
+- API route: `vaultengine/src/app/api/vault/content/route.ts`
+- Supabase schema/migrations: `vaultengine/supabase/migrations/`
 
-This section has moved here: [https://github.com/btd/rollup-plugin-visualizer#rollup-plugin-visualizer](https://github.com/btd/rollup-plugin-visualizer#rollup-plugin-visualizer)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://dev.to/hamdankhan364/simplifying-progressive-web-app-pwa-development-with-vite-a-beginners-guide-38cf](https://dev.to/hamdankhan364/simplifying-progressive-web-app-pwa-development-with-vite-a-beginners-guide-38cf)
-
-### Advanced Configuration
-
-This section has moved here: [https://vitejs.dev/guide/build.html#advanced-base-options](https://vitejs.dev/guide/build.html#advanced-base-options)
-
-### Deployment
-
-This section has moved here: [https://vitejs.dev/guide/build.html](https://vitejs.dev/guide/build.html)
-
-### Troubleshooting
-
-This section has moved here: [https://vitejs.dev/guide/troubleshooting.html](https://vitejs.dev/guide/troubleshooting.html)
+If you'd like, I can update the project website, add badges, or scaffold a short CONTRIBUTING guide.
