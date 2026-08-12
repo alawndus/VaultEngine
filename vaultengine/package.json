@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "gen-secret": "node generate-secret.mjs",
-    "seed": "node scripts/seed-supabase.mjs"
+    "seed": "node --env-file=.env.local scripts/seed-supabase.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.2",
