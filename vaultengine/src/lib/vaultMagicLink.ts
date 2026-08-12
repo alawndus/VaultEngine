@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { getSupabaseClient } from './supabaseClient'
 
-const BASE_URL = process.env.VAULT_BASE_URL ?? 'https://vaultengine.example.com'
+const BASE_URL = process.env.VAULT_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 const DEFAULT_TOKEN_TTL_SECONDS = 15 * 60
 
 function getMagicTokenSecret(): string {

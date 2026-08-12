@@ -22,11 +22,19 @@ async function revokeToken(tokenId: string, reason: string) {
     .eq('id', tokenId)
 }
 
-async function recordAuditEvent(tokenId: string, eventType: string, payload: Record<string, unknown>) {
+async function recordAuditEvent(
+  tokenId: string,
+  buyerId: string | null,
+  assetId: string | null,
+  eventType: string,
+  payload: Record<string, unknown>,
+) {
   const supabase = getSupabaseClient()
   await supabase.from('vault_access_audit').insert([
     {
       token_id: tokenId,
+      buyer_id: buyerId,
+      asset_id: assetId,
       event_type: eventType,
       event_payload: payload,
     },
@@ -106,11 +114,13 @@ export async function validateMagicToken(token: string, assetId: string, buyerId
     throw new Error('Magic token could not be consumed or has already been used.')
   }
 
-  await recordAuditEvent(tokenRow.id, 'token_consumed', {
-    assetId,
-    buyerId: tokenRow.buyer_id,
-    timestamp: new Date().toISOString(),
-  })
+  await recordAuditEvent(
+    tokenRow.id,
+    tokenRow.buyer_id ?? null,
+    asset.id ?? null,
+    'token_consumed',
+    { timestamp: new Date().toISOString() },
+  )
 
   return {
     tokenId: tokenRow.id,

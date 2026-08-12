@@ -79,7 +79,8 @@ async function main() {
     process.exit(1)
   }
 
-  const magicLink = `${NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/api/vault/content?token=${rawToken}&assetId=${assetId}`
+  const appUrl = (NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '')
+  const magicLink = `${appUrl}/api/vault/content?token=${rawToken}&assetId=${assetId}`
 
   console.log('\nSeed complete:')
   console.log('  Demo user id:', buyerId)
