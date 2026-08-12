@@ -21,7 +21,12 @@ create table if not exists vault_assets (
   storage_metadata jsonb not null default '{}'::jsonb
 );
 
-create type if not exists vault_token_status as enum ('active', 'consumed', 'expired', 'revoked');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'vault_token_status') THEN
+    CREATE TYPE vault_token_status AS ENUM ('active', 'consumed', 'expired', 'revoked');
+  END IF;
+END $$;
 
 create table if not exists vault_magic_tokens (
   id uuid primary key default gen_random_uuid(),
