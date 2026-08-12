@@ -59,16 +59,19 @@ create table if not exists vault_access_audit (
   created_at timestamptz not null default now()
 );
 
-create function if not exists vault_magic_token_expiration_check() returns trigger as $$
-begin
-  if new.expires_at <= now() then
-    new.status := 'expired';
-  end if;
-  return new;
-end;
-$$ language plpgsql;
+CREATE OR REPLACE FUNCTION vault_magic_token_expiration_check()
+RETURNS trigger AS $$
+BEGIN
+  IF NEW.expires_at <= now() THEN
+    NEW.status := 'expired';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-create trigger if not exists trigger_vault_magic_token_status
-before insert or update on vault_magic_tokens
-for each row
-execute procedure vault_magic_token_expiration_check();
+-- Make trigger creation idempotent: drop if exists then create
+DROP TRIGGER IF EXISTS trigger_vault_magic_token_status ON vault_magic_tokens;
+CREATE TRIGGER trigger_vault_magic_token_status
+BEFORE INSERT OR UPDATE ON vault_magic_tokens
+FOR EACH ROW
+EXECUTE PROCEDURE vault_magic_token_expiration_check();
