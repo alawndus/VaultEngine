@@ -17,27 +17,27 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !VAULT_TOKEN_SECRET) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 async function main() {
-  // Ensure migrations are applied or provide instructions
   try {
-    // quick check: see if vault_users table exists by selecting 1 row
-    const test = await supabase.from('vault_users').select('id').limit(1)
-    if (test.error && /Could not find the table/.test(test.error.message)) {
-      throw new Error('missing_tables')
-    }
-  } catch (err) {
-    if (err.message === 'missing_tables') {
-      console.error('Database appears to be missing required tables. Attempting to apply migrations...')
-      try {
-        // try to run migration helper script which will attempt available methods
-        execSync('node --env-file=.env.local scripts/apply-migrations.mjs', { stdio: 'inherit' })
-      } catch (merr) {
-        console.error('\nFailed to apply migrations automatically. Please apply the SQL in `vaultengine/supabase/migrations/20260811_vaultengine_schema.sql` using the Supabase SQL editor or psql.')
-        process.exit(1)
-      }
-    } else {
-      console.error('Unexpected error during pre-seed checks:', err)
+    const { error } = await supabase.from('vault_users').select('id').limit(1)
+
+    if (error && /Could not find the table|schema cache/i.test(error.message)) {
+      console.error('Supabase schema is missing required tables before seeding.')
+      console.error('Please run the migration in the Supabase SQL Editor: vaultengine/supabase/migrations/20260811_vaultengine_schema.sql')
+      console.error('Then rerun: cd /workspaces/codespaces-react/vaultengine && npm run seed')
       process.exit(1)
     }
+
+    if (error) {
+      throw error
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('Seed preflight check failed before inserting demo data.')
+    console.error('If the database schema is missing, run the migration in the Supabase SQL Editor:')
+    console.error('  vaultengine/supabase/migrations/20260811_vaultengine_schema.sql')
+    console.error('Then rerun: cd /workspaces/codespaces-react/vaultengine && npm run seed')
+    console.error(`Underlying error: ${message}`)
+    process.exit(1)
   }
 
   // Create demo user

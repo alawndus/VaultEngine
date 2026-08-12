@@ -54,7 +54,14 @@ The core architecture revolves around cryptographically secure, ephemeral access
 4. **Environment Configuration**:
    - Copy `.env.example` to `.env.local` before running
    - Required: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `VAULT_TOKEN_SECRET`
-   - `.env.local` must NOT be committed (contains secrets)
+   - Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_APP_URL` for client-side and local Next.js compatibility
+   - `.env.local` and `.env*.local` must NOT be committed (contains secrets)
+   - For standalone Node scripts, use `node --env-file=.env.local <script-path>`
+
+5. **Supabase Migration Safety**:
+   - Always check whether required tables like `public.vault_users` exist before running seed or mutation scripts
+   - If a migration file exists in `supabase/migrations/` or the repo root, run it in the Supabase SQL Editor whenever `DATABASE_URL` or `SUPABASE_ACCESS_TOKEN` is not available in `.env.local`
+   - If tables are missing, stop with a clear message instead of an unhandled exception
 
 ### Root React App
 - Simple Vite + React starter with test fixtures

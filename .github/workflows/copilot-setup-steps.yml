@@ -31,3 +31,10 @@ jobs:
             - name: Install VaultEngine dependencies
               working-directory: vaultengine
               run: npm ci
+
+            - name: Build root app
+              run: npm run build
+
+            - name: Build VaultEngine app
+              working-directory: vaultengine
+              run: npm run build
