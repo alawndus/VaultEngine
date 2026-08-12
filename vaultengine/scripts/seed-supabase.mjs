@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+import { execSync } from 'child_process'
+import fs from 'fs'
 
 const SUPABASE_URL = process.env.SUPABASE_URL
 const NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -15,6 +17,29 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !VAULT_TOKEN_SECRET) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 async function main() {
+  // Ensure migrations are applied or provide instructions
+  try {
+    // quick check: see if vault_users table exists by selecting 1 row
+    const test = await supabase.from('vault_users').select('id').limit(1)
+    if (test.error && /Could not find the table/.test(test.error.message)) {
+      throw new Error('missing_tables')
+    }
+  } catch (err) {
+    if (err.message === 'missing_tables') {
+      console.error('Database appears to be missing required tables. Attempting to apply migrations...')
+      try {
+        // try to run migration helper script which will attempt available methods
+        execSync('node --env-file=.env.local scripts/apply-migrations.mjs', { stdio: 'inherit' })
+      } catch (merr) {
+        console.error('\nFailed to apply migrations automatically. Please apply the SQL in `vaultengine/supabase/migrations/20260811_vaultengine_schema.sql` using the Supabase SQL editor or psql.')
+        process.exit(1)
+      }
+    } else {
+      console.error('Unexpected error during pre-seed checks:', err)
+      process.exit(1)
+    }
+  }
+
   // Create demo user
   const email = process.env.DEMO_USER_EMAIL ?? 'demo@local'
   const name = process.env.DEMO_USER_NAME ?? 'Demo User'
